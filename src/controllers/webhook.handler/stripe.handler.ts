@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Stripe from 'stripe';
+import { transferToken } from "./helpers/transferToken";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export class StripeWebhookHandler {
@@ -19,9 +21,12 @@ export class StripeWebhookHandler {
       switch (event.type) {
         case 'payment_intent.succeeded':
           const paymentIntent = event.data.object;
+          const amount = paymentIntent.amount;
           const apiKey = paymentIntent.metadata.apiKey;
           const walletAddress = paymentIntent.metadata.walletAddress;
-          // Fulfill the order
+          // credit walletAddress
+          await transferToken(apiKey, walletAddress, amount);
+
           break;
         case 'payment_intent.payment_failed':
           const paymentFailedIntent = event.data.object;
