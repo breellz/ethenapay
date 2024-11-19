@@ -2,6 +2,7 @@ import mongoose, { Document, Model, Schema } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 interface IApiKey extends Document {
+  user: string
   publicKey: string;
   secretKey: string;
   expiresAt: Date;

@@ -15,7 +15,7 @@ export const signUp = async (req: Request, res: Response) => {
     if (existingUser) {
       return res.status(400).send({ message: "User already exists, please signIn" });
     }
-    if (userType !== UserRoleEnum.USER && userType !== UserRoleEnum.DEVELOPER) {
+    if (userType !== UserRoleEnum.USER) {
       return res.status(400).send({ message: "User type must be either user or developer" });
     }
     const user = await AuthServices.signUp({ email, password, userType });
