@@ -1,5 +1,4 @@
 import { main } from "./app";
-import "./services/email.service/worker"
 
 
 const start = async () => {

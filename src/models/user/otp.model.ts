@@ -2,7 +2,7 @@
 import { Document, Schema, model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { IUser } from './user.model';
-import sendEmail from '../../services/email.service';
+import { sendEmail } from '../../services/email.service/mailer';
 
 export interface IOtp extends Document {
   user: IUser;
@@ -55,7 +55,6 @@ otpSchema.pre('save', async function (this: IOtp, next) {
     if (this.isModified('code') && this.type !== OtpTypeEnum.PHONE_VERIFICATION) {
       const populatedDoc = await this.model('Otp').populate(this, { path: 'user' }) as IOtp;
       await sendEmail(
-        'otp-verification-mail',
         {
           to: populatedDoc.user.email,
           subject: 'OTP',
