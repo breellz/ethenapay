@@ -1,5 +1,5 @@
-import { ApiKey } from "src/models/user/apiKey.model"
-import { EventLog } from "src/models/user/event-log.model"
+import { ApiKey } from "../../../models/user/apiKey.model"
+import { EventLog } from "../../../models/user/event-log.model"
 import { ethers } from 'ethers';
 
 
