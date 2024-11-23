@@ -11,6 +11,7 @@ export function generateSecretKey() {
 export const regenerateApiKeys = async (req: CustomRequest, res: Response) => {
 
   try {
+    console.log(req.user!)
     const publicKey = uuidv4();
     const secretKey = generateSecretKey();
 
@@ -22,7 +23,7 @@ export const regenerateApiKeys = async (req: CustomRequest, res: Response) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({ message: 'Something went wrong' });
+    return res.status(500).send({ message: error.message });
   }
 }
 

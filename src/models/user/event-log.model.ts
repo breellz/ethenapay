@@ -8,6 +8,7 @@ interface IEventLog extends Document {
   amount: number;
   from: string;
   to: string;
+  txHash: string;
   timestamp: Date;
 }
 
@@ -35,6 +36,7 @@ const EventLogSchema = new Schema({
   amount: { type: Number, required: true },
   from: { type: String, },
   to: { type: String, },
+  txHash: { type: String },
   timestamp: { type: Date, default: Date.now }
 }, {
   timestamps: true

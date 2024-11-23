@@ -4,9 +4,11 @@ import { ethers } from 'ethers';
 
 
 const privateKey = process.env.EVM_WALLET_PRIVATE_KEY || ''
-const providerUrl = process.env.PROVIDER_URL || ''
+const providerUrl = process.env.NODE_ENV === 'development' ?
+  process.env.TEST_PROVIDER_URL
+  : process.env.PROVIDER_URL
 const contractAddress = process.env.NODE_ENV === 'development' ?
-  process.env.USDE_SEPOLIA_CONTRACT_ADDRESS
+  process.env.USDE_BLE_CONTRACT_ADDRESS
   : process.env.USDE_MAINNET_CONTRACT_ADDRESS
 
 export const transferToken = async (apiKey: string, walletAddress: string, amount: number) => {

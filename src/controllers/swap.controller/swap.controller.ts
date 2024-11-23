@@ -1,11 +1,9 @@
-import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
-import crypto from 'crypto';
-import { CustomRequest } from '../../middlewares/auth';
 import { Response } from 'express';
 import Stripe from 'stripe';
+import { CustomRequest } from '../../middlewares/auth';
 import { ApiKey } from '../../models/user/apiKey.model';
-import { verifyEtherTransaction } from '../../utils/verifyEthTransaction';
-import { EventLog } from 'src/models/user/event-log.model';
+import { EventLog } from '../../models/user/event-log.model';
+import { verifyEthenaTransaction } from '../../utils/verifyEthTransaction';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
@@ -17,14 +15,18 @@ export const swapToFiat = async (req: CustomRequest, res: Response) => {
     apiKey,
     bankAccountId
   } = req.body
-  if (!txHash || walletAddress || !quantity || !apiKey || !bankAccountId) {
-    return res.status(400).send({ error: "txHash an wallet address are required" })
+
+
+  if (!txHash || !walletAddress || !quantity || !apiKey || !bankAccountId) {
+    return res.status(400).send({ error: "provide all required fields" })
   }
   try {
+    const eventLogExists = await EventLog.findOne({ txHash })
+    if (eventLogExists) {
+      return res.status(400).send({ error: "Transaction already exists" })
+    }
     const url = process.env.NODE_ENV === "development" ? process.env.ETH_TEST_NETWORK : process.env.ETH_NETWORK
-    const tokenAddress = process.env.NODE_ENV === "development" ? process.env.USDE_SEPOLIA_CONTRACT_ADDRESS : process.env.USDE_MAINNET_CONTRACT_ADDRESS
-    const response = await verifyEtherTransaction(
-      tokenAddress!,
+    const response = await verifyEthenaTransaction(
       18,
       txHash,
       url!,
@@ -32,7 +34,7 @@ export const swapToFiat = async (req: CustomRequest, res: Response) => {
       quantity
     )
 
-    if (!response) {
+    if (!response.success) {
       return res.status(400).send({ error: "Transaction not confirmed" })
     }
 
@@ -40,13 +42,7 @@ export const swapToFiat = async (req: CustomRequest, res: Response) => {
     if (!api) {
       throw new Error("Invalid API Key")
     }
-    const eventLog = new EventLog({
-      user: api.user,
-      eventType: "payment",
-      walletAddress,
-      amount: quantity
-    })
-    await eventLog.save()
+
 
     const payout = await stripe.payouts.create({
       amount: quantity * 100, // amount in cents
@@ -54,9 +50,19 @@ export const swapToFiat = async (req: CustomRequest, res: Response) => {
       destination: bankAccountId,
     });
 
-    return res.status(200).send({ success: true, payout });
+    const eventLog = new EventLog({
+      user: api.user,
+      eventType: "payment",
+      walletAddress,
+      txHash,
+      amount: quantity
+    })
+    await eventLog.save()
+
+    return res.status(200).send({ success: true, payout: "payout" });
 
   } catch (error) {
-    return res.status(500).send({ error: "Something went wrong" })
+    console.log(error)
+    return res.status(500).send({ error: error.raw.message })
   }
 }

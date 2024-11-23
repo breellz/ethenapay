@@ -17,7 +17,7 @@ export class StripeWebhookHandler {
         res.status(400).send(`Webhook Error: ${err.message}`);
         return;
       }
-      console.log(event)
+
       switch (event.type) {
         case 'payment_intent.succeeded':
           const paymentIntent = event.data.object;
@@ -39,6 +39,7 @@ export class StripeWebhookHandler {
 
       return res.status(200).send()
     } catch (error) {
+      console.log(error)
       return res.status(500).send()
     }
   }
